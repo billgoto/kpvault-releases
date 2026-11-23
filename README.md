@@ -130,7 +130,7 @@
 | 桌面界面 | Electron 主进程 + Vue 3 / Pinia 渲染进程；自绘标题栏、系统托盘 |
 | 数据同步 | 内置 WebDAV 同步主库（写库后上传、定时比对远端、冲突存副本），也支持网盘同步盘带来的外部变更检测 |
 | 浏览器填充 | 自研 MV3 扩展 + 应用内本地桥（`127.0.0.1` + 配对令牌），不依赖 KeePassXC-Browser 官方扩展 |
-| 更新分发 | Gitee 上的 `update.json` 负责版本检查，安装包从 GitHub Releases 下载；**只提醒，不自动下载或安装** |
+| 更新分发 | GitHub Releases 上的 `update.json` 负责版本检查，安装包也从同一个 Release 下载；**只提醒，不自动下载或安装** |
 
 **明确不做的事**：不打包/分发 KeePassXC 二进制，不保存主密码，不在渲染进程持有主密码明文，不自动安装更新，不做静默的自动冲突合并。
 
@@ -176,7 +176,7 @@
 | `KPVault-Setup.exe` | 应用安装包，始终覆盖同名文件，链接不变 |
 | `KeePassXC-2.8.0-x64.zip` | 运行必需的 KeePassXC portable 版，解压到任意固定目录即可 |
 
-源码仓库：<https://gitee.com/goobill/kpvault> · 更新清单仓库：<https://gitee.com/goobill/kpvault-releases> · 安装包：<https://github.com/billgoto/kpvault-releases/releases/latest>
+源码仓库：<https://gitee.com/goobill/kpvault> · 发布页（清单与安装包）：<https://github.com/billgoto/kpvault-releases/releases/latest>
 
 ---
 
@@ -364,7 +364,7 @@
 ## 11. 检查更新
 
 - 默认开启。启动 30 秒后检查一次，之后每 24 小时一次；顶栏版本号按钮可手动检查。
-- 更新清单 `update.json` 放在 Gitee 的固定 `latest` 目录（匿名可访问、URL 恒定），客户端只认这个地址；打开链接的域名白名单写死在代码里，不动态信任清单内容。
+- 更新清单 `update.json` 与安装包放在同一个 GitHub `latest` Release（匿名可访问、URL 恒定），客户端只认这个地址；打开链接的域名白名单写死在代码里，不动态信任清单内容。
 - 有更新时版本号按钮变成「有新版本 vX.Y.Z」并高亮，点开可看更新说明，再点「打开下载页」跳到 GitHub Releases。
 - **应用不会自动下载或安装**：安装包没有代码签名，自动安装的风险大于便利。请自行下载 `KPVault-Setup.exe` 覆盖安装。**v1.44 起密码库存在 `%APPDATA%\KPVault\data\`，升级和卸载都不会删除它**；从 v0.2.2 及更早版本升级时，安装器会在卸载旧版**之前**把 `<安装目录>\data\main.kdbx` 自动迁移过去（目标已有库则整个跳过，绝不覆盖）。日常仍建议定期备份，但不必再为升级手动挪库。
 

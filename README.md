@@ -22,7 +22,7 @@
 
 > ⚠️ **两个硬前提**
 >
-> 1. **安装包不含 KeePassXC。** 应用只是界面：先在本机装 KeePassXC（≥ 2.7.0），或解压下载页附带的 portable zip，并让应用找到 `keepassxc-cli.exe`。
+> 1. **安装包不含 KeePassXC。** 应用只是界面：先在 [KeePassXC 官网](https://keepassxc.org/download/) 装好（≥ 2.7.0），或解压下载页附带的 portable zip，并让应用找到 `keepassxc-cli.exe`。
 > 2. **主密码不保存在任何地方，也找不回来。** 忘了就等于永久失去这个库，备份同样是加密的，一样解不开。
 
 ## 目录
@@ -41,8 +41,7 @@
 - [11. 检查更新](#11-检查更新)
 - [12. 数据与配置位置](#12-数据与配置位置)
 - [13. 常见问题](#13-常见问题)
-- [14. 开发](#14-开发)
-- [15. 许可证与第三方组件](#15-许可证与第三方组件)
+- [14. 许可证与第三方组件](#14-许可证与第三方组件)
 
 ---
 
@@ -52,7 +51,7 @@
 
 ### 第 1 步：准备 KeePassXC
 
-把 `KeePassXC-2.8.0-x64.zip` 解压到一个固定目录（例如 `D:\Portable\KeePassXC-2.8.0-x64`），或者直接安装 KeePassXC（**≥ 2.7.0**，推荐 2.8.0）。
+把 `KeePassXC-2.8.0-x64.zip` 解压到一个固定目录（例如 `D:\Portable\KeePassXC-2.8.0-x64`），或者从 [KeePassXC 官网](https://keepassxc.org/download/) 安装（**≥ 2.7.0**，推荐 2.8.0）。
 
 > 应用不打包 KeePassXC，它只是界面：真正的加解密由本机 `keepassxc-cli` 完成。
 
@@ -166,7 +165,7 @@
 | 项 | 要求 |
 | :--- | :--- |
 | 操作系统 | Windows x64（当前只发布 NSIS 安装包；源码中的 CLI 探测也包含 Linux 路径分支） |
-| KeePassXC | **≥ 2.7.0**，推荐 2.8.0；安装版或 Portable 版均可，只要找得到 `keepassxc-cli.exe` |
+| KeePassXC | **[≥ 2.7.0](https://keepassxc.org/download/)**，推荐 2.8.0；安装版或 Portable 版均可，只要找得到 `keepassxc-cli.exe` |
 | 浏览器（可选） | Chromium 系（Chrome / Edge），用于加载未打包的填充扩展 |
 | WebDAV（可选） | 坚果云等支持 WebDAV 的服务；需**应用密码**，不是登录密码 |
 
@@ -183,7 +182,7 @@
 
 ## 4. 安装与首次启动
 
-1. **准备 KeePassXC**：安装 KeePassXC，或把下载页的 `KeePassXC-2.8.0-x64.zip` 解压到一个固定目录（例如 `D:\Portable\KeePassXC-2.8.0-x64`）。
+1. **准备 KeePassXC**：从[官网](https://keepassxc.org/download/)安装，或把下载页的 `KeePassXC-2.8.0-x64.zip` 解压到一个固定目录（例如 `D:\Portable\KeePassXC-2.8.0-x64`）。
 2. **安装应用**：运行 `KPVault-Setup.exe`（NSIS，可自选安装目录、会创建桌面快捷方式）。
 3. **首次启动会自动探测 `keepassxc-cli`**，顺序为：配置里记住的路径 → 常见安装目录（`Program Files`、`LOCALAPPDATA\Programs`、chocolatey、scoop）→ `PATH`。若找不到，进入第 1 段引导页：
    - 「选择 KeePassXC 目录」：选 portable 解压后的文件夹，应用会下探一层子目录找 `keepassxc-cli.exe`；
@@ -391,7 +390,7 @@
 
 | 现象 | 处理 |
 | :--- | :--- |
-| 启动提示「找不到 keepassxc-cli」 | 确认已安装/解压 KeePassXC 且版本 ≥ 2.7.0；用「指定 KeePassXC 目录」选 portable 文件夹或直接选 exe，然后「重新检测」 |
+| 启动提示「找不到 keepassxc-cli」 | 确认已[安装/解压 KeePassXC](https://keepassxc.org/download/) 且版本 ≥ 2.7.0；用「指定 KeePassXC 目录」选 portable 文件夹或直接选 exe，然后「重新检测」 |
 | WebDAV 返回 403 | 用**应用密码**而非登录密码；关闭坚果云微信二次验证 |
 | 扩展显示「连不上本机应用」 | 应用没运行 → 点账号会自动拉起（也可在弹窗点「启动 KPVault」，首次需在浏览器确认框点「打开」）；已运行 → 检查设置里本地桥是否启用、是否有端口占用报错（多半是还有另一个 KPVault 进程在托盘里）、端口是否与扩展一致（默认 `47823`，应用不会换端口）。若提示「端口已自动修正」，点一次「刷新列表」即可。令牌不对才需要「重新配对」 |
 | 关掉窗口后程序没退出 | 默认最小化到托盘；托盘右键「退出」，或设置里把「关闭窗口时」改成「直接退出」 |
@@ -403,32 +402,7 @@
 
 ---
 
-## 14. 开发
-
-技术栈：Electron + electron-vite + Vue 3 / Pinia + TypeScript + Vitest。主进程通过 `keepassxc-cli` 子进程读写库；`src/shared/channels.ts` 是 IPC 通道唯一来源，`src/preload/index.ts` 只暴露白名单方法。
-
-| 命令 | 说明 |
-| :--- | :--- |
-| `npm install` | 安装依赖（会校验 Electron 二进制是否就位） |
-| `npm run dev` | 开发模式 |
-| `npm run typecheck` | vue-tsc + tsc 双端类型检查 |
-| `npm run build` | 类型检查 + electron-vite 构建 |
-| `npm run test` | Vitest 单元测试 |
-| `npm run pack:win` | 构建并打 NSIS 安装包（含语言包裁剪脚本） |
-| `npm run release:dry` | 生成 `update.json` 但不上传，检查清单内容 |
-| `npm run release` | 正式发布（见下） |
-
-**发布链路**：`update.json` 上传到 Gitee `latest` Release；安装包与随包的 `KeePassXC-2.8.0-x64.zip` 上传到 GitHub `latest` Release（固定附件名，见 `.env.example` 的 `GITHUB_REPO` / `EXTRA_ASSETS`），清单里的下载页指向 GitHub Release。凭据放在项目根目录 `.env`（模板见 `.env.example`，已被 `.gitignore` 排除，**禁止提交**），命令行注入的环境变量优先于 `.env`。手动同步安装包的场景可用：
-
-```bash
-node scripts/release.mjs --skip-build --skip-asset-upload
-```
-
-更完整的设计、威胁模型与发布约定见 [`docs/详细设计文档.md`](docs/详细设计文档.md)。
-
----
-
-## 15. 许可证与第三方组件
+## 14. 许可证与第三方组件
 
 - 本项目源码在 `package.json` 中声明为 `GPL-3.0-only`。
 - **安装包不分发 KeePassXC 及其 Qt 依赖**，KeePassXC 由用户自行安装；其名称与图标归 KeePassXC 项目所有，使用与分发请遵守其自身许可。

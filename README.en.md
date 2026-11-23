@@ -167,7 +167,7 @@ Security baseline: the renderer reaches the main process only through a `context
 | OS | Windows x64 (only the NSIS installer is published; the CLI locator also contains Linux paths in source) |
 | KeePassXC | **[≥ 2.7.0](https://keepassxc.org/download/)**, 2.8.0 recommended; installed or portable, as long as `keepassxc-cli.exe` can be found |
 | Browser (optional) | Chromium-based (Chrome / Edge) to load the unpacked fill extension |
-| WebDAV (optional) | Any WebDAV service such as Nutstore; an **app password** is required, not the login password |
+| WebDAV (optional) | Any standard WebDAV service: Nutstore, pCloud, Synology / fnOS / QNAP NAS, Nextcloud, self-hosted or an OpenList gateway. Most need an **app password**, not the login password |
 
 **Downloads**: <https://github.com/billgoto/kpvault-releases/releases/latest> (public repo, anonymous access; speeds from mainland China can be flaky — a proxy helps)
 
@@ -191,7 +191,7 @@ Source: <https://gitee.com/goobill/kpvault> · Releases (manifest + installer): 
    - The top bar also keeps "Detect KeePassXC again" and "Specify KeePassXC folder" permanently; a manual choice is remembered.
 4. **Create or restore the database**: the location is fixed at `%APPDATA%\KPVault\data\main.kdbx` (since v1.44 it no longer lives in the install directory) and cannot be changed (to avoid clobbering cloud-sync copies). The second onboarding screen offers:
    - "Create database" → set a master password (with strength hint, typed twice) → "Create and unlock";
-   - "Restore from WebDAV…" → **use this on a new machine**: pick the provider (Nutstore), enter username and app password, download the existing database. Do not create a fresh database on the second machine.
+   - "Restore from WebDAV…" → **use this on a new machine**: enter the server address (the provider dropdown can prefill it), username and app password, and download the existing database; for a home NAS tick "Allow self-signed certificate". Do not create a fresh database on the second machine.
 5. **Unlock**: every later launch opens the login-style unlock page; type the master password (eye icon toggles plain text), press Enter or click "Unlock".
 
 > 🔑 **The master password is never stored and cannot be recovered.** Losing it means losing the database permanently — keep it safe.
@@ -283,20 +283,54 @@ Rules: an automatic backup is taken before every write and the latest **20** are
 
 ## 8. WebDAV sync
 
-Enable it under "Settings → WebDAV sync" and fill in:
+Enable it under "Settings → WebDAV sync" and fill in four things: **server address, username, password, remote folder**.
 
 | Field | Notes |
 | :--- | :--- |
-| Provider | Dropdown, currently only "Nutstore" (`https://dav.jianguoyun.com/dav`); adding another provider is one more dropdown entry |
-| Username | Your Nutstore account email |
-| Password | **App password** (web → account info → security → third-party apps → add), not the login password |
-| Remote directory | Default `/kpvault`, database file name `main.kdbx` |
+| Provider | Just a **shortcut**: Nutstore / pCloud / custom. The address field below is always the source of truth |
+| Server address | See 8.1. Self-hosted and NAS addresses cannot be preset — type them |
+| Username | Nutstore: account email; NAS: device account; pCloud: account email |
+| Password | Depends on the service: Nutstore / pCloud need an **app password** (Nutstore: web → account info → security → third-party apps → add); a NAS uses its account password |
+| Remote folder | Default `/kpvault`, database file is always `main.kdbx`. **It must live inside a shared folder** (see 8.3) |
+| Allow self-signed certificate | Home NAS HTTPS is usually self-signed; turn this on if it will not connect. It skips certificate validation — only for your own LAN server |
 | Upload after each write | On by default |
 | Remote check interval | 30 s / 1 min / 5 min / 15 min, default 1 min |
 
-"Test connection" validates the credentials, "Sync now" triggers a manual run. The password is stored encrypted via the OS `safeStorage`; if unavailable, the UI says plainly that the token/password will be stored in plain text in the config file.
+**Every setting is now "edit, then Save"**: the Save button at the top right enables as soon as something changed, and editing a field no longer writes the config immediately (session, language, shortcuts, updates, browser autofill and WebDAV alike). "Test connection" tries the values you typed without saving them, so you can verify before saving; "Sync now" triggers one manual run. The password is stored encrypted via the OS `safeStorage`; if unavailable, the UI says plainly that it will be stored in plain text in the config file.
 
-**Behaviour**: upload after a successful write, compare the remote copy on a timer. **When both sides changed, nothing is overwritten automatically** — the remote version becomes a conflict copy and automatic sync pauses until you resolve it in the "Conflict copies" panel.
+### 8.1 What it can talk to
+
+Anything that speaks **standard WebDAV** works. Known-good settings you can copy:
+
+| Platform | Server address | Account | Watch out for |
+| :--- | :--- | :--- | :--- |
+| Nutstore | `https://dav.jianguoyun.com/dav` | account email | **App password** is mandatory; disable WeChat 2FA; free tier allows 600 requests / 30 min (this app compares once a minute by default) |
+| pCloud | `https://webdav.pcloud.com` (EU: `https://ewebdav.pcloud.com`) | account email + password | With 2FA enabled, approve the login from your inbox once |
+| Synology | `https://LAN-IP:5006` | DSM account | Install the **WebDAV Server** package; 5006 is HTTPS, 5005 is HTTP; self-signed cert → turn on "Allow self-signed certificate" |
+| fnOS (飞牛) | `https://LAN-IP:5006`, or the address FN Connect gives you (`https://dav.xxx.fnos.net`) | fnOS account | Enable it under System settings → File sharing protocols → WebDAV; **team folders need "allow mounting over sharing protocols" ticked, it is off by default** |
+| QNAP / TerraMaster | `https://LAN-IP:5006` (port depends on the package) | NAS account | Enable the WebDAV service first |
+| Nextcloud / ownCloud | `https://domain/remote.php/dav/files/your-username` (ownCloud: `/remote.php/webdav`) | account + **app password** | The address includes your username; create an app password under Settings → Security |
+| OpenList / AList / rclone gateway | `http://LAN-IP:5244/dav` | gateway account | One integration covers ~30 drives (Aliyun Drive, Baidu, Quark, 115, 123, OneDrive, Google Drive…); you run the gateway yourself |
+| nginx / Apache mod_dav | `https://your-domain/dav` | Basic account | Most freedom; you own the certificate, port and path prefix |
+
+> OneDrive, Google Drive, Dropbox, Aliyun Drive and Baidu Netdisk have **no WebDAV**; talking to them directly needs OAuth, which this app does not do. Use the OpenList gateway row above instead.
+
+### 8.2 Three steps for a home NAS (Synology / fnOS / QNAP)
+
+1. **Enable the service**: install WebDAV Server on Synology (default 5006); on fnOS open System settings → File sharing protocols → WebDAV. Note the port.
+2. **Prepare a folder**: create something like `kpvault` on the NAS and make sure your account can **write** to it.
+3. **Fill in the app**: address `https://LAN-IP:5006`, NAS account and password, tick "Allow self-signed certificate", set the remote folder to `/shared-folder/kpvault`, then "Test connection" and "Sync now".
+
+### 8.3 Common failures
+
+| Symptom | Cause and fix |
+| :--- | :--- |
+| "Certificate is not trusted" | The NAS uses a self-signed certificate → turn on "Allow self-signed certificate". Never for a public service |
+| `HTTP 409` failure (sometimes with "the remote folder could not be created") | The remote folder points at the NAS **root**. A NAS root is a list of shared folders and cannot take a new directory → use `/shared-folder/kpvault` |
+| Team folders will not sync | Team folders on fnOS / Synology disallow WebDAV mounting by default; tick it in the folder properties |
+| `HTTP 403` | Wrong credential type: Nutstore / pCloud need an **app password** rather than the login password; on Nutstore also disable WeChat 2FA; check the account can write to that folder |
+| `HTTP 401` | Wrong username or password; on Nextcloud the usual cause is a missing username in the address |
+| "The remote changed" on every sync | That server's ETag is unstable (common when a gateway fronts a third-party drive) → click "Sync now" once to rebuild the baseline; if it keeps happening, switch services |
 
 ### Merging a conflict copy
 
@@ -392,6 +426,8 @@ The config holds the WebDAV app password and the browser pairing token, both pre
 | :--- | :--- |
 | "Cannot find keepassxc-cli" on start | Make sure [KeePassXC](https://keepassxc.org/download/) ≥ 2.7.0 is installed or unzipped; use "Specify KeePassXC folder" for the portable folder (or pick the exe directly), then "Detect again" |
 | WebDAV returns 403 | Use the **app password**, not the login password; disable Nutstore WeChat two-factor auth |
+| WebDAV says the certificate is not trusted | Self-signed cert on a home NAS → tick "Allow self-signed certificate" in the WebDAV section of Settings. Never for a public service |
+| WebDAV sync fails with `HTTP 409` | The remote folder sits on the NAS root; a NAS root is a list of shared folders, so use `/shared-folder/kpvault` |
 | Extension says "cannot reach local app" | App not running → clicking an account launches it (or use "Launch KPVault"; click "Open" in the browser dialog the first time). Running → check the bridge is enabled, no "port in use" error (often another KPVault in the tray), and the port matches (default `47823`, never shifted). If it says the port was corrected, click "Refresh list" once. "Re-pair" is only for a wrong token |
 | Closing the window does not exit | It minimizes to tray by default; use "Quit" in the tray menu, or change "When closing the window" to "Quit directly" |
 | Forgot the master password | Unrecoverable. Backups are encrypted databases too, so they cannot be opened either — the database must be recreated |

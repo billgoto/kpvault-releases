@@ -130,7 +130,7 @@ Layers:
 | Desktop UI | Electron main process + Vue 3 / Pinia renderer; custom title bar, system tray |
 | Data sync | Built-in WebDAV sync (upload after write, periodic remote comparison, conflict copies) plus detection of external file changes from any sync tool |
 | Browser fill | Custom MV3 extension + in-app local bridge (`127.0.0.1` + pairing token), independent of KeePassXC-Browser |
-| Distribution | `update.json` on Gitee for version checks; the installer is downloaded from GitHub Releases. **Notify only — never downloads or installs by itself** |
+| Distribution | `update.json` on GitHub Releases for version checks; the installer comes from the same Release. **Notify only — never downloads or installs by itself** |
 
 **Deliberately not done**: bundling or distributing KeePassXC binaries, storing the master password, holding the password in the renderer process, auto-installing updates, silent automatic conflict merging.
 
@@ -176,7 +176,7 @@ Security baseline: the renderer reaches the main process only through a `context
 | `KPVault-Setup.exe` | The installer; always overwritten under the same name, so the link never changes |
 | `KeePassXC-2.8.0-x64.zip` | Required portable KeePassXC; unzip anywhere permanent |
 
-Source: <https://gitee.com/goobill/kpvault> · Release manifest repo: <https://gitee.com/goobill/kpvault-releases> · Downloads: <https://github.com/billgoto/kpvault-releases/releases/latest>
+Source: <https://gitee.com/goobill/kpvault> · Releases (manifest + installer): <https://github.com/billgoto/kpvault-releases/releases/latest>
 
 ---
 
@@ -364,7 +364,7 @@ Inside inputs only `Esc` / `Ctrl+F` / `Ctrl+L` are intercepted; everything else 
 ## 11. Update checks
 
 - On by default. One check 30 seconds after start, then every 24 hours; the version button in the top bar checks manually.
-- The manifest `update.json` lives in the fixed Gitee `latest` directory (anonymous, constant URL) and the client only trusts that address; the allowed download domains are hard-coded and never taken from the manifest.
+- The manifest `update.json` lives in the same GitHub `latest` Release as the installer (anonymous, constant URL) and the client only trusts that address; the allowed download domains are hard-coded and never taken from the manifest.
 - When an update exists the version button turns into "New version vX.Y.Z" and highlights; open it to read the notes, then "Open download page".
 - **The app never downloads or installs by itself**: the installer is unsigned, and silent installation would be riskier than the convenience is worth. Download `KPVault-Setup.exe` and install over the old version. **Since v1.44 the database lives in `%APPDATA%\KPVault\data\`, untouched by upgrades and uninstalls**; when upgrading from v0.2.2 or earlier the installer migrates `<install dir>\data\main.kdbx` **before** the old version is uninstalled (skipped entirely if the target already exists — never overwritten). Regular backups are still recommended, but you no longer have to move the database by hand.
 

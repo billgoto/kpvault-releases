@@ -22,7 +22,7 @@ All cryptography, database access and merging is delegated to the `keepassxc-cli
 
 > ⚠️ **Two hard prerequisites**
 >
-> 1. **KeePassXC is not bundled.** The app is only a UI: install KeePassXC (≥ 2.7.0) first, or unzip the portable build shipped on the download page, and let the app locate `keepassxc-cli.exe`.
+> 1. **KeePassXC is not bundled.** The app is only a UI: install [KeePassXC](https://keepassxc.org/download/) (≥ 2.7.0) first, or unzip the portable build shipped on the download page, and let the app locate `keepassxc-cli.exe`.
 > 2. **The master password is stored nowhere and cannot be recovered.** Forget it and the database is gone for good; backups are encrypted with the same password and are equally unreadable.
 
 ## Contents
@@ -41,8 +41,7 @@ All cryptography, database access and merging is delegated to the `keepassxc-cli
 - [11. Update checks](#11-update-checks)
 - [12. Data and config locations](#12-data-and-config-locations)
 - [13. FAQ](#13-faq)
-- [14. Development](#14-development)
-- [15. License and third-party components](#15-license-and-third-party-components)
+- [14. License and third-party components](#14-license-and-third-party-components)
 
 ---
 
@@ -52,7 +51,7 @@ From zero to "filling passwords in the browser" takes about 5 minutes. You need 
 
 ### Step 1: prepare KeePassXC
 
-Unzip `KeePassXC-2.8.0-x64.zip` into a fixed directory (e.g. `D:\Portable\KeePassXC-2.8.0-x64`), or install KeePassXC normally (**≥ 2.7.0**, 2.8.0 recommended).
+Unzip `KeePassXC-2.8.0-x64.zip` into a fixed directory (e.g. `D:\Portable\KeePassXC-2.8.0-x64`), or install [KeePassXC](https://keepassxc.org/download/) normally (**≥ 2.7.0**, 2.8.0 recommended).
 
 > The app does not bundle KeePassXC — it is only the UI; the actual crypto is done by the local `keepassxc-cli`.
 
@@ -166,7 +165,7 @@ Security baseline: the renderer reaches the main process only through a `context
 | Item | Requirement |
 | :--- | :--- |
 | OS | Windows x64 (only the NSIS installer is published; the CLI locator also contains Linux paths in source) |
-| KeePassXC | **≥ 2.7.0**, 2.8.0 recommended; installed or portable, as long as `keepassxc-cli.exe` can be found |
+| KeePassXC | **[≥ 2.7.0](https://keepassxc.org/download/)**, 2.8.0 recommended; installed or portable, as long as `keepassxc-cli.exe` can be found |
 | Browser (optional) | Chromium-based (Chrome / Edge) to load the unpacked fill extension |
 | WebDAV (optional) | Any WebDAV service such as Nutstore; an **app password** is required, not the login password |
 
@@ -183,7 +182,7 @@ Source: <https://gitee.com/goobill/kpvault> · Release manifest repo: <https://g
 
 ## 4. Install and first run
 
-1. **Prepare KeePassXC**: install it, or unzip `KeePassXC-2.8.0-x64.zip` into a fixed folder (e.g. `D:\Portable\KeePassXC-2.8.0-x64`).
+1. **Prepare KeePassXC**: install it from [keepassxc.org](https://keepassxc.org/download/), or unzip `KeePassXC-2.8.0-x64.zip` into a fixed folder (e.g. `D:\Portable\KeePassXC-2.8.0-x64`).
 2. **Install the app**: run `KPVault-Setup.exe` (NSIS; selectable install path, desktop shortcut created).
 3. **First launch probes for `keepassxc-cli`** in this order: path remembered in config → common install locations (`Program Files`, `LOCALAPPDATA\Programs`, chocolatey, scoop) → `PATH`. If nothing is found you get the first onboarding screen:
    - "Select KeePassXC folder": pick the unzipped portable folder; the app looks one level down for `keepassxc-cli.exe`;
@@ -391,7 +390,7 @@ The config holds the WebDAV app password and the browser pairing token, both pre
 
 | Symptom | What to do |
 | :--- | :--- |
-| "Cannot find keepassxc-cli" on start | Make sure KeePassXC ≥ 2.7.0 is installed or unzipped; use "Specify KeePassXC folder" for the portable folder (or pick the exe directly), then "Detect again" |
+| "Cannot find keepassxc-cli" on start | Make sure [KeePassXC](https://keepassxc.org/download/) ≥ 2.7.0 is installed or unzipped; use "Specify KeePassXC folder" for the portable folder (or pick the exe directly), then "Detect again" |
 | WebDAV returns 403 | Use the **app password**, not the login password; disable Nutstore WeChat two-factor auth |
 | Extension says "cannot reach local app" | App not running → clicking an account launches it (or use "Launch KPVault"; click "Open" in the browser dialog the first time). Running → check the bridge is enabled, no "port in use" error (often another KPVault in the tray), and the port matches (default `47823`, never shifted). If it says the port was corrected, click "Refresh list" once. "Re-pair" is only for a wrong token |
 | Closing the window does not exit | It minimizes to tray by default; use "Quit" in the tray menu, or change "When closing the window" to "Quit directly" |
@@ -403,32 +402,7 @@ The config holds the WebDAV app password and the browser pairing token, both pre
 
 ---
 
-## 14. Development
-
-Stack: Electron + electron-vite + Vue 3 / Pinia + TypeScript + Vitest. The main process drives a `keepassxc-cli` child process; `src/shared/channels.ts` is the single source of IPC channels and `src/preload/index.ts` exposes only allow-listed methods.
-
-| Command | Notes |
-| :--- | :--- |
-| `npm install` | Install dependencies (verifies the Electron binary is present) |
-| `npm run dev` | Development mode |
-| `npm run typecheck` | vue-tsc + tsc for both targets |
-| `npm run build` | Type check + electron-vite build |
-| `npm run test` | Vitest unit tests |
-| `npm run pack:win` | Build and package the NSIS installer (with the locale-trim step) |
-| `npm run release:dry` | Generate `update.json` without uploading, to inspect the manifest |
-| `npm run release` | Full release (see below) |
-
-**Release pipeline**: `update.json` goes to the Gitee `latest` Release; the installer and the bundled `KeePassXC-2.8.0-x64.zip` are published to the GitHub `latest` Release (fixed asset names; see `GITHUB_REPO` / `EXTRA_ASSETS` in `.env.example`), and the manifest's download page points at the GitHub Release. Credentials live in `.env` at the project root (template in `.env.example`, excluded by `.gitignore`, **never commit it**); environment variables injected on the command line take precedence. To sync the installer manually:
-
-```bash
-node scripts/release.mjs --skip-build --skip-asset-upload
-```
-
-Design notes, threat model and release conventions: [`docs/详细设计文档.md`](docs/详细设计文档.md) (Chinese).
-
----
-
-## 15. License and third-party components
+## 14. License and third-party components
 
 - This project declares `GPL-3.0-only` in `package.json`.
 - **The installer does not distribute KeePassXC or its Qt dependencies**; users install KeePassXC themselves. Its name and icon belong to the KeePassXC project — follow its own license when using or redistributing them.
